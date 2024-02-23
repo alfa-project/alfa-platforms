@@ -5,5 +5,5 @@ This repository contains the hardware and software components, alongside guides,
 - Desktop:
   - [x] Ubuntu 22.04.1 LTS with ROS 2 Humble Hawksbill ([**Setup guide**](https://github.com/alfa-project/alfa-platforms/tree/main/desktop/instructions/README.md))
 - Embedded:
-  - [x] Xilinx Zynq UltraScale+ MPSoC ZCU104 (Petaliunx and Vivado) ([**Setup guide**](https://github.com/alfa-project/alfa-platforms/Xilinx/instructions/README.md))
+  - [x] Xilinx Zynq UltraScale+ MPSoC ZCU104 (Petaliunx and Vivado) ([**Setup guide**](https://github.com/alfa-project/alfa-platforms/tree/main/Xilinx/instructions/README.md))
   - [ ] More tools are going to be supported - TBA
