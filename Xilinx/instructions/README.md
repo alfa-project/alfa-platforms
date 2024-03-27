@@ -17,7 +17,7 @@ This guide was based on: <https://news.accelerationrobotics.com/ros2-humble-yoct
 Create a folder named 'embedded' inside your ALFA local folder:
 
 ```sh
-mkdir -p ~/ALFA/embedded
+mkdir -p ALFA/embedded
 ```
 
 Download the petalinux installer from Xilinx website ([link](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/embedded-design-tools.htm)) (registration is required) and place it inside the 'embedded' folder. From this folder, change the file properties to make it executable and run it (you can also select an installation dir with -d option):
@@ -210,16 +210,10 @@ Save and close the file.
 
 ### Add ALFA components or other custom applications 
 
-Copy (or link if you want) the meta-alfa layer to the Petalinux 'projects/<PROJECT_NAME>/layers' folder:
+In order to add the ALFA layer to the project, we need to add its path to the project configuration file. Open the file \<project folder\>/build/conf/bblayers.conf and add the following line to the BBLAYERS definition:
 
 ```sh
-cp -a meta-alfa ~/ALFA/embedded/projects/<PROJECT_NAME>/layers/
-````
-
-Since a new layer was included into the project, we need to add it to the project configuration. Open the file \<project folder\>/build/conf/bblayers.conf and add the following line to the BBLAYERS definition:
-
-```sh
-${SDKBASEMETAPATH}../../layers/meta-alfa \
+${SDKBASEMETAPATH}../../../meta-alfa \
 ```
 
 Include the following lines into the device tree user file located in <YOUR_PROJECT_DIR/>/project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
@@ -263,7 +257,7 @@ Include the following lines into the device tree user file located in <YOUR_PROJ
 
 </details>
 
-Update ros-petalinux.bb receipe inside folder "*/project-spec/meta-user/recipes-image/images" with the desired alfa components under 'IMAGE_INSTALL:append':
+Update ros-petalinux.bb receipe inside the folder "project-spec/meta-user/recipes-image/images" with the desired alfa components under 'IMAGE_INSTALL:append':
 
 ```sh
  alfadd \
