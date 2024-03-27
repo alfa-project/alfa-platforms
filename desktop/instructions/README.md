@@ -110,43 +110,42 @@ sudo apt install libpcl-dev
 
 ## ALFA framework
 
-We recommend you to create a folder named 'ALFA' anywhere you like and keep inside all related software and tools. Start by cloning all repositories to your 'ALFA' local folder:
+We recommend you to have a folder named 'ALFA' anywhere you like and keep inside all related software and tools. Start by cloning all repositories to your 'ALFA' local folder:
 
 ```sh
-git clone -b main https://github.com/alfa-project/alfa-framework.git --recurse-submodules
+git clone -b main https://github.com/alfa-project/alfa-framework.git --recurse-submodules ALFA && cd ALFA
 ```
 
 To use the Desktop version of ALFA, only a few more steps are required. First, create a workspace for working with ALFA packages without interfering with the existing default ROS2 workspace. To know more about creating a workspace check [ROS2 documentation](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html). This will include all ROS2-related software provided by ALFA.
 
 ```sh
-mkdir -p ~/ALFA/ros2_ws/src
+mkdir -p ros2_ws/src && cd ros2_ws/src
 ```
 
-Then, copy (or you can create links from) the provided ALFA ROS2 packages to the new ROS2 workspace:
+Then, link the provided ALFA ROS2 packages to the new ROS2 workspace:
 
 - **alfa_node** from [alfa-node](https://github.com/alfa-project/alfa-node)
 
 ```sh
-cp -a alfa_node ~/ALFA/ros2_ws/src/
+ln -s ../../alfa-node/alfa_node alfa_node
 ````
 
 - **alfa_msg** from [alfa-messages](https://github.com/alfa-project/alfa-messages)
 
 ```sh
-cp -a alfa_msg ~/ALFA/ros2_ws/src/
+ln -s ../../alfa-messages/alfa_msg alfa_msg
 ```
 
 - **software alfa-extensions** from [alfa-extensions](https://github.com/alfa-project/alfa-extensions/)
 
 ```sh
-mkdir ~/ALFA/ros2_ws/src/alfa_extensions
-cp -a alfa-extensions/sw/* ~/ALFA/ros2_ws/src/alfa_extensions
+ln -s ../../alfa-extensions/sw alfa_ext
 ```
 
 - **alfa-monitor** from [alfa-monitor](https://github.com/alfa-project/alfa-monitor/)
 
 ```sh
-cp -a alfa-monitor ~/ALFA/ros2_ws/src/
+ln -s ../../alfa-monitor alfa_monitor
 ```
 
 ## Compile ALFA extensions
@@ -154,7 +153,7 @@ cp -a alfa-monitor ~/ALFA/ros2_ws/src/
 ALFA software extensions are pieces of software written in C/C++ with ROS and ALFA-node dependencies. Therefore, compile them for desktop usage requires *colcon* within the ros2 workspace. Make sure that the packages alfa_node, alfa_msg and at least one extension (in this case we included the dummy extension) are inside your src folder and then build the workspace with the following commands:
 
 ```sh
-cd ~/ALFA/ros2_ws 
+cd ALFA/ros2_ws 
 ```
 
 ```sh
