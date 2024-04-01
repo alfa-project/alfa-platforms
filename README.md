@@ -145,8 +145,9 @@ git clone -b main https://github.com/alfa-project/alfa-framework.git --recurse-s
 #### 4. Create a ROS Workspace
 To use the Desktop version of ALFA, only a few more steps are required. First, create a workspace for working with ALFA packages without interfering with the existing default ROS2 workspace. To know more about creating a workspace check [ROS2 documentation](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace.html). This will include all ROS2-related software provided by ALFA.
 
+Create a Ros2 workspace inside the ALFA directory:
 ```sh
-mkdir -p ros2_ws/src && cd ros2_ws/src
+mkdir -p ros2alfa_ws/src && cd ros2alfa_ws/src
 ```
 
 Then, link the provided ALFA ROS2 packages to the new ROS2 workspace:
@@ -160,19 +161,19 @@ ln -s ../../ALFA/alfa-framework/alfa-node alfa_node
 - **alfa_msg** from [alfa-messages](https://github.com/alfa-project/alfa-messages)
 
 ```sh
-ln -s ../../ALFA/alfa-framework/alfa-messages alfa_msg
+ln -s ../../alfa-framework/alfa-messages alfa_msg
 ```
 
 - **software alfa-extensions** from [alfa-extensions](https://github.com/alfa-project/alfa-extensions/)
 
 ```sh
-ln -s ../../ALFA/alfa-framework/alfa-extensions alfa_ext
+ln -s ../../alfa-framework/alfa-extensions alfa_ext
 ```
 
 - **alfa-monitor** from [alfa-monitor](https://github.com/alfa-project/alfa-monitor/)
 
 ```sh
-ln -s ../../ALFA/alfa-framework/alfa-monitor/ alfa_monitor
+ln -s ../../alfa-framework/alfa-monitor/ alfa_monitor
 ```
 
 
@@ -181,7 +182,7 @@ ln -s ../../ALFA/alfa-framework/alfa-monitor/ alfa_monitor
 ALFA software extensions are pieces of software written in C/C++ with ROS and ALFA-node dependencies. Therefore, compile them for desktop usage requires *colcon* within the ros2 workspace. Make sure that the packages alfa_node, alfa_msg and at least one extension (in this case we included the dummy extension) are inside your src folder and then build the workspace with the following commands:
 
 ```sh
-cd ALFA/ros2_ws 
+cd ALFA/ros2alfa_ws 
 ```
 
 ```sh
