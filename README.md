@@ -155,7 +155,7 @@ Then, link the provided ALFA ROS2 packages to the new ROS2 workspace:
 - **alfa_node** from [alfa-node](https://github.com/alfa-project/alfa-node)
 
 ```sh
-ln -s ../../ALFA/alfa-framework/alfa-node alfa_node
+ln -s ../../alfa-framework/alfa-node alfa_node
 ```
 
 - **alfa_msg** from [alfa-messages](https://github.com/alfa-project/alfa-messages)
