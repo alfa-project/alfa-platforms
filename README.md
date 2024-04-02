@@ -139,7 +139,7 @@ We recommend you to have a folder named 'ALFA' anywhere you like and keep inside
 sudo apt install git
 ```
 ```sh
-git clone -b main https://github.com/alfa-project/alfa-framework.git --recurse-submodules ALFA && cd ALFA
+git clone -b main https://github.com/alfa-project/alfa-framework.git --recurse-submodules
 ```
 
 #### 4. Create a ROS Workspace
