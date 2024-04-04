@@ -3,9 +3,9 @@
 
 ALFA supports the following platforms: 
 - Desktop Linux:
-  - [x] Ubuntu 22.04.1 LTS with ROS 2 Humble Hawksbill ([Click Here](#alfa-installation-and-setup-desktop))
+  - [x] [Ubuntu 22.04.1 LTS with ROS 2 Humble Hawksbill](#alfa-installation-and-setup-desktop)
 - Embedded Platforms:
-  - [x] Xilinx Zynq UltraScale+ MPSoC ZCU104 (Petaliunx and Vivado) ([Click Here](#xilinx-zynq-ultrascale-mpsoc-zcu104))
+  - [x] [Xilinx Zynq UltraScale+ MPSoC ZCU104 (Petaliunx and Vivado)](#xilinx-zynq-ultrascale-mpsoc-zcu104)
   - [x] More platforms - TBA
 
 
@@ -99,30 +99,6 @@ Install colcon. You will need it for building ROS2 packages:
 sudo apt install python3-colcon-common-extensions
 ```
 
-<!---```sh
-sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-```
-Add the ROS 2 apt repository to your system:
-```sh
-sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-```
-```sh
-sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-```
-```sh
-sudo apt update
-```
-```sh
-sudo apt install ros-melodic-desktop-full
-```
-```sh
-echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
-```
-```sh
-source ~/.bashrc
-```
--->
-
 #### 2. Point Cloud Library (PCL)
 
 Installing the ROS2 full desktop version, also installs the PCL. However, if another ROS version present in you distribution, PCL may have to be installed separately. Make sure the PCL is installed:
@@ -213,11 +189,22 @@ source ./install/setup.bash
 ```
 
 - ##### To run an Extension, check the [ALFA extensions](https://github.com/alfa-project/alfa-extensions) repository.
-- ##### To run the ALFA Monitor, check the [ALFA Monitor](https://github.com/alfa-project/alfa-monitor) repository.
 
 
-
+<!--------------------------------------------------------------------- -->
 # Xilinx Zynq UltraScale+ MPSoC ZCU104
----
 
-<b>Available Soon!</b>
+
+#### 1. Installation
+
+
+#### 2. Installation
+
+
+#### 3. Installation
+
+
+#### 4. Installation
+
+
+#### 5. Installation
