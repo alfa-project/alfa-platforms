@@ -189,6 +189,7 @@ source ./install/setup.bash
 ```
 
 - ##### To run an Extension, check the [ALFA extensions](https://github.com/alfa-project/alfa-extensions) repository.
+- ##### To run the ALFA Monitor, check the [ALFA Monitor](https://github.com/alfa-project/alfa-monitor) repository.
 
 
 <!--------------------------------------------------------------------- -->
