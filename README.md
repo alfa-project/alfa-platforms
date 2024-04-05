@@ -2,9 +2,9 @@
 ---
 
 ALFA supports the following platforms: 
-- Desktop Linux:
+- Install on Desktop Linux:
   - [x] [Ubuntu 22.04.1 LTS with ROS 2 Humble Hawksbill](#alfa-installation-and-setup-desktop)
-- Embedded Platforms:
+- Install on Embedded Platforms:
   - [x] [Xilinx Zynq UltraScale+ MPSoC ZCU104 (Petalinux and Vivado)](#xilinx-zynq-ultrascale-mpsoc-zcu104)
   - [x] More platforms - TBA
 
@@ -153,7 +153,7 @@ ln -s ../../alfa-framework/alfa-monitor/ alfa_monitor
 ```
 
 
-## Compile ALFA extensions
+#### 5. Compile ALFA extensions
 
 ALFA software extensions are pieces of software written in C/C++ with ROS and ALFA-node dependencies. Therefore, compile them for desktop usage requires *colcon* within the ros2 workspace. Make sure that the packages alfa_node, alfa_msg and at least one extension (in this case we included the dummy extension) are inside your src folder and then build the workspace with the following commands:
 
@@ -206,7 +206,7 @@ This guide was based on:
 Tested with the following tools:
 - Ubuntu 22.04.4 LTS
 - Xilinx Petalinux 2023.2
-- ROS2 ???
+- ROS2 Humble Hawksbill (included in the Petalinux 2023.2)
 
 Create a folder 'alfa-embedded' inside the ALFA folder previously created:
 
@@ -232,7 +232,7 @@ Source its settings:
 source settings.sh
 ```
 
-### Create a project from the ALFA hardware xsa 
+#### 2. Create a project from the ALFA hardware xsa file
 
 To create a project for the zcu104, inside the ‘projects’ dir run petalinux-create command (***-n** defines the name of the project and -t the name of the base template*):
 
@@ -248,6 +248,12 @@ cd alfa_zcu104
 petalinux-config --get-hw-description=<PATH_TO_ALFA_PLATFORMS_REP>/Xilinx/hardware/zcu104.xsa
 ```
 
+Change the Machine name from 'template' to 'zcu104-revc' under the DTG Settings menu:
+```sh
+(zcu104-revc) MACHINE_NAME
+```
+
+<!----------------------------------------------------
 ### Add meta-layers for ROS 2 FOXY and configure them in PetaLinux 
 
 Create a new folder named "layers" inside your projects/<NAME_OF_YOUR_PROJECT> folder. This folder will hold the new layers that we will add to the project. Inside the layers folder, clone the meta-ros layers from github. The Petalinux downloaded version matches the Yocto Honister release so we must also align with that:
@@ -271,16 +277,17 @@ As petalinux by default uses ROS2 humble, we have to change the default ROS_DIST
 ```sh
 ROS_DISTRO = "foxy"
 ```
+----------------- -->
 
-### Extend the minimal image to support ROS 2 
+#### 3. Extend the minimal image to include ROS2 
 
-Update petalinux image to include the new ROS2 content. For that we need to create a new recipe file to extend the petalinux-image-minimal to a custom one. Inside the project workspace create a new dir and an empty file called “ros-petalinux.bb”:
+Update petalinux image to include the new ROS2 content. Inside the project folder create a new dir:
 
 ```sh
 mkdir -p project-spec/meta-user/recipes-image/images
 ```
 
-Inside the images dir create an empty file ros-petalinux.bb:
+Inside the 'images' dir create an empty file 'ros-petalinux.bb':
 
 ```sh
 touch ros-petalinux.bb
@@ -403,15 +410,15 @@ EXTRA_IMAGE_FEATURES += "ros-implicit-workspace"
 Save and close the file.
 
 
-#### 2. Add ALFA components or other custom applications 
+#### 4. Add ALFA components or other custom applications 
 
-In order to add the ALFA layer to the project, we need to add its path to the project configuration file. Open the file \<project folder\>/build/conf/bblayers.conf and add the following line to the BBLAYERS definition:
+Open the file alfa_zcu104/build/conf/bblayers.conf and add the following line to the BBLAYERS definition to add the ALFA layer meta-alfa (which is located under your alfa-framework installation): 
 
 ```sh
-${SDKBASEMETAPATH}../../../meta-alfa \
+${SDKBASEMETAPATH}/../../../../../alfa-framework/meta-alfa \
 ```
 
-Include the following lines into the device tree user file located in <YOUR_PROJECT_DIR/>/project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
+Replace with the following lines into the device tree user file located in alfa_zcu104/project-spec/meta-user/recipes-bsp/device-tree/files/system-user.dtsi
 
 <details>
   <summary>Click to expand</summary>
@@ -452,10 +459,10 @@ Include the following lines into the device tree user file located in <YOUR_PROJ
 
 </details>
 
-Update ros-petalinux.bb receipe inside the folder "project-spec/meta-user/recipes-image/images" with the desired alfa components under 'IMAGE_INSTALL:append':
+Update ros-petalinux.bb receipe inside the folder "alfa_zcu104/project-spec/meta-user/recipes-image/images" with the desired alfa components under 'IMAGE_INSTALL:append':
 
 ```sh
- alfadd \
+ alfa-dd \
  alfa-msg \
  alfa-node \
 ```
@@ -466,29 +473,22 @@ Add the following line at the end of the file to load the ALFA device driver dur
 KERNEL_MODULE_AUTOLOAD = "alfadd"
 ```
 
-Since ALFA extensions require root access to physical memory (will be fixed soon), the final image must be configurated to enable it. Run the following command inside your project folder and select the *Petalinux RootFS Settings* menu.
+Since ALFA extensions require root access to physical memory (it will be fixed soon), the final image must be configurated to enable it. Run the following command inside the project folder and select the *Petalinux RootFS Settings* menu to redefine the root password by changing *root:root* to *root:alfa*. Select Save and then Exit.
 
 ```sh
 petalinux-config -c rootfs
 ```
 
-Redefine the root password in the first submenu by changing *root:root* to *root:YOURPASSWORD*. Select Save and then exit the menu.
-
-Finally run the build process again, with the updated recipe:
+#### 5. Build the image
+Finally start petalinux-build to build our custom Linux image:
 
 ```sh
 petalinux-build -c ros-petalinux
 ```
 
-### Build and test the image 
+This should create a Linux image for zcu104 and display no errors. If errors do appear it can be for multiple reasons, e.g., corrupted downloaded files, memory/ram issues, disk space, network-related issues, etc. You can monitor the memory utilization during the building process with the “htop” command. Usually changing the number of parallel make -j parameter to a lower number, and/or increasing the size of the swap memory solves the problem. 
 
-Run petalinux-build to build the system image:
-
-```sh
-petalinux-build
-```
-
-This should create an image for zcu104 and display no errors. If errors do appear it can be for multiple reasons, e.g., corrupted downloaded files, memory/ram issues, disk space in the hard drive, network-related issues, etc. You can monitor the memory utilization during the building process with the “htop” command.
+#### 6. Generate boot components and SDcard image:
 
 The build images are located in the \<plnx-proj-root\>/images/linux directory. A copy is also placed in the /tftpboot directory if the option is enabled in the system-level configuration for the PetaLinux project.
 
@@ -540,23 +540,25 @@ sudo bash -c 'pv *.wic > /dev/sda'
 
 Finally, insert the sd card into the board and boot. Login with the root user and the password defined in the rootfs configuration.
 
-#### 3. Install Embedded Software extensions
+#### 7. Install More embedded software extensions
 
-To include the extensions in the embedded image, a recipe file must be created for each extension. You can see the already existing recipes (.bb files) in the meta-alfa/recipes-alfa/alfa-extensions folder. The following steps will show you how you can include the dummy extension into the embedded image. In this case, we already provide a recipe file for the dummy extension, which can be used as starting point for your new extensions.
+To include custom extensions in the embedded image after testing the framework, you must create a recipe file for each new extension. Existing recipes (.bb files) in the meta-alfa/recipes-alfa/alfa-extensions folder can be used as a strating point. 
 
-Firstly, update the ros-petalinux.bb receipt (inside folder "/project-spec/meta-user/recipes-image/images") with the desired ALFA extension, in this case ext-dummy, under 'IMAGE_INSTALL:append':
+###### Update the ros-petalinux.bb receipt 
+
+Iinside folder "alfa_zcu104/project-spec/meta-user/recipes-image/images" add the new recipe under 'IMAGE_INSTALL:append':
 
 ```sh
- ext-dummy \
+ ext-<new_extension_name> \
 ```
 
-Then go to your project folder and rerun the following command to update the image:
+###### Update the image
 
 ```sh
 petalinux-build -c ros-petalinux
 ```
 
-Create the SD Card image with the wic command:
+###### Create the new SD Card image with the wic command:
 
 ```sh
 petalinux-package --wic
@@ -568,10 +570,10 @@ And finally, copy the image to the SD Card (check the SD Card device name before
 sudo dd if=images/linux/petalinux-sdimage.wic of=/dev/sda conv=fsync bs=8M
 ```
 
-**Jump to [ALFA extensions](https://github.com/alfa-project/alfa-extensions) to see how to run and interact with dummy node after booting your board.**
+#### 8.  Install embedded hardware extensions
+Available Soon!
 
-## Install Embedded Hardware extensions
-
+<!----
 To use hardware extensions with the ZCU104 board, you need to [install Xilinx's Vivado](https://www.xilinx.com/support/download.html). At the time of this writing ALFA has been tested with Vivado Design Suite - HLx Editions - 2022.2. We recommend you to get familiarized with this tool suite before developing hardware Extensions. Useful documentation can be found here: [Vivado Design Suit User Guide UG910](https://docs.xilinx.com/r/en-US/ug910-vivado-getting-started).
 
 ### Create an ALFA project, add the extension and generate the bitstream
@@ -697,3 +699,5 @@ Then, package the extension with your hardware files and the ALFA interfaces:
     ![package](figures/package_ip.png)
 
 To use the generated IP, you can follow the [steps above](#create-an-alfa-project-add-the-extension-and-generate-the-bitstream) to include the extension in the ALFA project and generate the bitstream. Then, **Jump to [ALFA extensions](https://github.com/alfa-project/alfa-extensions) to see how to run and interact with dummy node after booting your board.**
+
+---->
