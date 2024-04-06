@@ -9,20 +9,6 @@ ALFA supports the following platforms:
   - [x] More platforms - TBA
 
 
-<!-- ## Table of Contents
-
-- [Architecture](#architecture)
-  - [Software](#software)
-  - [Hardware](#hardware)
-- [Supported ALFA Configurations and Setups](#supported-alfa-configurations-and-setups)
-  - [Desktop](#desktop)
-  - [Embedded Software](#embedded-software)
-  - [Embedded Software-Hardware](#embedded-software-hardware)
-- [Repositories Overview](#repositories-overview)
-- [Installation](#installation)
-- [Publications](#publications)
--->
-
 # Desktop Ubuntu 22.04.1 LTS with ROS 2 Humble Hawksbill 
 ---
 
@@ -205,8 +191,8 @@ This guide was based on:
 
 Tested with the following tools:
 - Ubuntu 22.04.4 LTS
-- Xilinx Petalinux 2023.2
-- ROS2 Humble Hawksbill (included in the Petalinux 2023.2)
+- Xilinx Petalinux 2022.1 (that comes with Yocto Honister)
+- ROS2 Foxy Fitzroy
 
 Create a folder 'alfa-embedded' inside the ALFA folder previously created:
 
@@ -217,16 +203,16 @@ mkdir -p alfa-embedded/petalinux
 Download the Petalinux installer from Xilinx website ([link](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/embedded-design-tools.htm)) (registration is required) to the folder 'alfa-embedded' and change the file properties to make it executable.
 
 ```sh
-chmod 755 ./petalinux-v2023.2-10121855-installer.run
+chmod 755 ./petalinux-v2022.1-04191534-installer.run
 ```
 Run it (a different installation directory can be set with the -d option):
 ```sh
-./petalinux-v2023.2-10121855-installer.run -d <INSTALL_DIR>
+./petalinux-v2022.1-04191534-installer.run -d petalinux
 ```
 
 **Note**: Install any other possible missing dependencies/libraries reported by the installer.
 
-Source its settings:
+Go inside the petalinux folder and source its settings:
 
 ```sh
 source settings.sh
@@ -248,38 +234,35 @@ cd alfa_zcu104
 petalinux-config --get-hw-description=<PATH_TO_ALFA_PLATFORMS_REP>/Xilinx/hardware/zcu104.xsa
 ```
 
-Change the Machine name from 'template' to 'zcu104-revc' under the DTG Settings menu:
+Change the Machine name from 'template' to 'zcu104-revc' under the DTG Settings menu and save and exit the config file. 
 ```sh
 (zcu104-revc) MACHINE_NAME
 ```
 
-<!----------------------------------------------------
-### Add meta-layers for ROS 2 FOXY and configure them in PetaLinux 
+#### 3. Add meta-layers for ROS2 Humble and configure them in PetaLinux 
 
-Create a new folder named "layers" inside your projects/<NAME_OF_YOUR_PROJECT> folder. This folder will hold the new layers that we will add to the project. Inside the layers folder, clone the meta-ros layers from github. The Petalinux downloaded version matches the Yocto Honister release so we must also align with that:
+Create a new folder named "layers" inside your project folder alfa_zcu104. Inside the layers folder, clone the meta-ros layers from github:
 
 ```sh
 git clone -b honister https://github.com/ros/meta-ros.git 
 ```
 
-The 2022 version of petalinux already adds meta-ros layers, however, at the time of this tutorial, they did not compile correctly with the PCL so we changed the ROS2 version from humble to foxy release.
-
-Add the following into the \<project folder\>/build/conf/bblayers.conf file in the BBLAYERS definition, for the meta-ros recipes. If there are already any ros lines, delete them and add the following:
+Add the following into the alfa_zcu104/build/conf/bblayers.conf file in the BBLAYERS definition, for the meta-ros recipes. If there are already any ros lines, delete them and add the following:
 
 ```sh
-${SDKBASEMETAPATH}../../layers/meta-ros/meta-ros-common \
-${SDKBASEMETAPATH}../../layers/meta-ros/meta-ros2 \
-${SDKBASEMETAPATH}../../layers/meta-ros/meta-ros2-foxy \
+${SDKBASEMETAPATH}/../../layers/meta-ros/meta-ros-common \
+${SDKBASEMETAPATH}/../../layers/meta-ros/meta-ros2 \
+${SDKBASEMETAPATH}/../../layers/meta-ros/meta-ros2-foxy \
 ```
 
-As petalinux by default uses ROS2 humble, we have to change the default ROS_DISTRO. Edit \<project folder\>/components/yocto/layers/meta-petalinux/conf/distro/petalinux.conf to change the variable ROS_DISTRO to foxy:
+Edit alfa_zcu104/components/yocto/layers/meta-petalinux/conf/distro/petalinux.conf to change the variable ROS_DISTRO to foxy:
 
 ```sh
 ROS_DISTRO = "foxy"
 ```
------------------ -->
+<!---------------------->
 
-#### 3. Extend the minimal image to include ROS2 
+#### 4. Extend the minimal image to include ROS2 
 
 Update petalinux image to include the new ROS2 content. Inside the project folder create a new dir:
 
@@ -410,7 +393,7 @@ EXTRA_IMAGE_FEATURES += "ros-implicit-workspace"
 Save and close the file.
 
 
-#### 4. Add ALFA components or other custom applications 
+#### 5. Add ALFA components or other custom applications 
 
 Open the file alfa_zcu104/build/conf/bblayers.conf and add the following line to the BBLAYERS definition to add the ALFA layer meta-alfa (which is located under your alfa-framework installation): 
 
@@ -479,7 +462,7 @@ Since ALFA extensions require root access to physical memory (it will be fixed s
 petalinux-config -c rootfs
 ```
 
-#### 5. Build the image
+#### 6. Build the image
 Finally start petalinux-build to build our custom Linux image:
 
 ```sh
@@ -488,7 +471,7 @@ petalinux-build -c ros-petalinux
 
 This should create a Linux image for zcu104 and display no errors. If errors do appear it can be for multiple reasons, e.g., corrupted downloaded files, memory/ram issues, disk space, network-related issues, etc. You can monitor the memory utilization during the building process with the “htop” command. Usually changing the number of parallel make -j parameter to a lower number, and/or increasing the size of the swap memory solves the problem. 
 
-#### 6. Generate boot components and SDcard image:
+#### 7. Generate boot components and SDcard image:
 
 The build images are located in the \<plnx-proj-root\>/images/linux directory. A copy is also placed in the /tftpboot directory if the option is enabled in the system-level configuration for the PetaLinux project.
 
@@ -540,7 +523,7 @@ sudo bash -c 'pv *.wic > /dev/sda'
 
 Finally, insert the sd card into the board and boot. Login with the root user and the password defined in the rootfs configuration.
 
-#### 7. Install More embedded software extensions
+#### 8. Install More embedded software extensions
 
 To include custom extensions in the embedded image after testing the framework, you must create a recipe file for each new extension. Existing recipes (.bb files) in the meta-alfa/recipes-alfa/alfa-extensions folder can be used as a strating point. 
 
@@ -570,7 +553,7 @@ And finally, copy the image to the SD Card (check the SD Card device name before
 sudo dd if=images/linux/petalinux-sdimage.wic of=/dev/sda conv=fsync bs=8M
 ```
 
-#### 8.  Install embedded hardware extensions
+#### 9.  Install embedded hardware extensions
 Available Soon!
 
 <!----
