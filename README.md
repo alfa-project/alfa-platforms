@@ -191,8 +191,8 @@ This guide was based on:
 
 Tested with the following tools:
 - Ubuntu 22.04.4 LTS
-- Xilinx Petalinux 2022.1 (that comes with Yocto Honister)
-- ROS2 Foxy Fitzroy
+- Xilinx Petalinux 2022.2 (that comes with Yocto Honister)
+- ROS2 Foxy Fitzroy (https://github.com/ros/meta-ros.git and compatible with Honister)
 
 Create a folder 'alfa-embedded' inside the ALFA folder previously created:
 
@@ -203,11 +203,11 @@ mkdir -p alfa-embedded/petalinux
 Download the Petalinux installer from Xilinx website ([link](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/embedded-design-tools.htm)) (registration is required) to the folder 'alfa-embedded' and change the file properties to make it executable.
 
 ```sh
-chmod 755 ./petalinux-v2022.1-04191534-installer.run
+chmod 755 ./petalinux-v2022.2-10141622-installer.run
 ```
 Run it (a different installation directory can be set with the -d option):
 ```sh
-./petalinux-v2022.1-04191534-installer.run -d petalinux
+./petalinux-v2022.2-10141622-installer.run -d petalinux
 ```
 
 **Note**: Install any other possible missing dependencies/libraries reported by the installer.
@@ -231,12 +231,17 @@ cd alfa_zcu104
 ```
 
 ```sh
-petalinux-config --get-hw-description=<PATH_TO_ALFA_PLATFORMS_REP>/Xilinx/hardware/zcu104.xsa
+petalinux-config --get-hw-description=/alfa-framework/alfa-platforms/xilinx/hardware/zcu104.xsa
 ```
 
 Change the Machine name from 'template' to 'zcu104-revc' under the DTG Settings menu and save and exit the config file. 
 ```sh
 (zcu104-revc) MACHINE_NAME
+```
+
+Select the Root filesystem type under the Image Packaging Configuration menu
+```sh
+Root filesystem type (EXT4 (SD/eMMC/SATA/USB))
 ```
 
 #### 3. Add meta-layers for ROS2 Humble and configure them in PetaLinux 
@@ -448,6 +453,8 @@ Update ros-petalinux.bb receipe inside the folder "alfa_zcu104/project-spec/meta
  alfa-dd \
  alfa-msg \
  alfa-node \
+ ext-dummy \
+ ext-distance-filter \
 ```
 
 Add the following line at the end of the file to load the ALFA device driver during boot:
@@ -456,10 +463,15 @@ Add the following line at the end of the file to load the ALFA device driver dur
 KERNEL_MODULE_AUTOLOAD = "alfadd"
 ```
 
-Since ALFA extensions require root access to physical memory (it will be fixed soon), the final image must be configurated to enable it. Run the following command inside the project folder and select the *Petalinux RootFS Settings* menu to redefine the root password by changing *root:root* to *root:alfa*. Select Save and then Exit.
+Since ALFA extensions require root access to physical memory (it will be fixed soon), the final image must be configurated to enable it. Run the following command inside the project folder and select the *Petalinux RootFS Settings* menu to add a new user (alfa), and add this user to the sudo user.
 
 ```sh
 petalinux-config -c rootfs
+```
+Add extra user alfa (no default password)
+```sh
+(root:root;alfa::passwd-expire;) Add Extra Users 
+(alfa) Add Users to Sudo users
 ```
 
 #### 6. Build the image
@@ -469,26 +481,27 @@ Finally start petalinux-build to build our custom Linux image:
 petalinux-build -c ros-petalinux
 ```
 
-This should create a Linux image for zcu104 and display no errors. If errors do appear it can be for multiple reasons, e.g., corrupted downloaded files, memory/ram issues, disk space, network-related issues, etc. You can monitor the memory utilization during the building process with the “htop” command. Usually changing the number of parallel make -j parameter to a lower number, and/or increasing the size of the swap memory solves the problem. 
+This should create a Linux image for zcu104 and display no errors. If some errors appear, the possibilities are: different package releases, corrupted downloaded files, low RAM memory, low disk space, low swap memory, or network-related issues. In case of memory issues, usually changing the number of parallel jobs to a lower number, and/or increasing the size of the swap memory solves the problem. 
 
 #### 7. Generate boot components and SDcard image:
 
-The build images are located in the \<plnx-proj-root\>/images/linux directory. A copy is also placed in the /tftpboot directory if the option is enabled in the system-level configuration for the PetaLinux project.
+The build images are located under the project folder alfa_zcu104/images/linux directory. A copy is also placed in the /tftpboot directory if the option is enabled in the system-level configuration for the PetaLinux project.
 
-**Important:** By default, besides the kernel, RootFS, and U-Boot, the PetaLinux project is configured to generate and build the other boot components for Zynq FSBL, for Zynq UltraScale+ MPSoC FSBL and PMU firmware and for Versal PLM and PSM firmware. For more details on the auto generated boot components, see [UG1144 - Generating Boot Components](https://docs.xilinx.com/r/en-US/ug1144-petalinux-tools-reference-guide/Generating-Boot-Components).
+**Important:** By default, besides the kernel, RootFS, and U-Boot, the PetaLinux project is configured to generate and build the other boot components for Zynq FSBL, Zynq UltraScale+ MPSoC FSBL and PMU firmware, and for Versal PLM and PSM firmware. For more details on the auto generated boot components, see [UG1144 - Generating Boot Components](https://docs.xilinx.com/r/en-US/ug1144-petalinux-tools-reference-guide/Generating-Boot-Components).
 
-The selected boot components must be compiled into the boot image to be placed in the flash memory or an SD card. A boot image usually contains a first stage boot loader image (Zynqmp_fsbl.elf), FPGA bitstream (project1.bit), PMU firmware (pmufw.elf), TF-A (bl31.elf), device tree description (system.dtb), and U-Boot (u-boot.elf).
 
-Execute the following command to generate the boot image in .BIN format with these components:
+A boot image usually contains a first stage boot loader image (Zynqmp_fsbl.elf), FPGA bitstream (project1.bit), PMU firmware (pmufw.elf), TF-A (bl31.elf), device tree description (system.dtb), and U-Boot (u-boot.elf).
+
+Generate the boot image in .BIN format to include these components:
 
 ```sh
 petalinux-package --boot --fpga --u-boot
 ```
 
-Later, after creating your own FPGA bitstream file, you can manually include it in the boot.bin:
+Include the default bitstrem. Later, when a new FPGA bitstream is created with hardware extensions, it can be manually included in the boot.bin:
 
 ```sh
-petalinux-package --boot --fpga <path-to-file>/system.bit --u-boot
+petalinux-package --boot --fpga <path-to-file>/system.bit --u-boot --force
 ```
 
 Use the wic packaging tool to create a ready to use SD Card image with the following command:
@@ -500,10 +513,10 @@ petalinux-package --wic
 **Note:** The default image generated by petalinux is around 6GB. This much more than we actually need. To change this, we can customize the wks file used by wic by changing the partition size accordingly. The default rootfs.wks file can be found inside the build directory. This file is autogenerated. Copy it to the 'projects' directory, change the size of the boot and filesystem partitions, and include it with the petalinux-package command:
 
 ```sh
-petalinux-package --wic --wks <path-to-file>/rootfs.wks 
+petalinux-package --wic --wks alfa_zcu104/build/rootfs.wks 
 ```
 
-The rootfs can also be changed with petalinux (optional) to remove unwanted packages. This will also help in reducing the final image’s size:
+The rootfs can also be changed with petalinux (optional) to remove unwanted packages. This also helps in reducing the final image’s size:
 
 ```sh
 petalinux-config -c rootfs
@@ -523,9 +536,9 @@ sudo bash -c 'pv *.wic > /dev/sda'
 
 Finally, insert the sd card into the board and boot. Login with the root user and the password defined in the rootfs configuration.
 
-#### 8. Install More embedded software extensions
+#### 8. Install more embedded software extensions
 
-To include custom extensions in the embedded image after testing the framework, you must create a recipe file for each new extension. Existing recipes (.bb files) in the meta-alfa/recipes-alfa/alfa-extensions folder can be used as a strating point. 
+To include custom extensions in the embedded image after testing the framework, it is necessary a recipe file for each new extension. Existing recipes (.bb files) in the meta-alfa/recipes-alfa/alfa-extensions folder can be used as a starting point. 
 
 ###### Update the ros-petalinux.bb receipt 
 
@@ -541,19 +554,37 @@ Iinside folder "alfa_zcu104/project-spec/meta-user/recipes-image/images" add the
 petalinux-build -c ros-petalinux
 ```
 
-###### Create the new SD Card image with the wic command:
+###### Updated the card image with the wic command and copy it to the SD card:
 
 ```sh
 petalinux-package --wic
 ```
-
-And finally, copy the image to the SD Card (check the SD Card device name before running the command):
-
 ```sh
 sudo dd if=images/linux/petalinux-sdimage.wic of=/dev/sda conv=fsync bs=8M
 ```
 
-#### 9.  Install embedded hardware extensions
+#### 9. Check the created embedded [ALFA extensions](https://github.com/alfa-project/alfa-extensions/) with the Xilinx Zynq UltraScale+ MPSoC ZCU104 platform. 
+
+The default username is "alfa". Pick a password at your choice.  
+```sh
+[  OK  ] Finished Permit User Sessions.
+[  OK  ] Started Getty on tty1.
+[  OK  ] Started Serial Getty on ttyPS0.
+[  OK  ] Reached target Login Prompts.
+[  OK  ] Started Target Communication Framework agent.
+[  OK  ] Reached target Multi-User System.
+         Starting Record Runlevel Change in UTMP...
+[  OK  ] Finished Record Runlevel Change in UTMP.
+
+PetaLinux 2022.2_release_S10071807 alfazcu104 ttyPS0
+
+alfazcu104 login: alfa
+Password: 
+```
+
+<b>NOTE:</b> From petalinux 2022.1 onwards, the root login is disabled by default. However, at this point of development, to communicate with the hardware the <b>alfadd</b> requires root access to the dev/mem device driver. The current work around is to enable super user acess with "sudo -i" after login.
+
+#### 10.  Install embedded hardware extensions
 Available Soon!
 
 <!----
