@@ -4,13 +4,11 @@ echo -e "\n############ ALFA Vivado Project Setup ############ \n"
 
 if [ -d "src" ]; then
 		rm -r src/*
-		rm component.xml
 	else
 		mkdir src
 fi
 
 cp -r ../../alfa-unit/src/* src/
-cp -r ../../alfa-unit/component.xml .
 
 if [ -z "$1" ]; then
 	    echo -e "-> Project Name: Undefined"
