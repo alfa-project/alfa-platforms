@@ -584,6 +584,19 @@ Password:
 
 <b>NOTE:</b> From petalinux 2022.1 onwards, the root login is disabled by default. However, at this point of development, to communicate with the hardware the <b>alfadd</b> requires root access to the dev/mem device driver. The current work around is to enable super user acess with "sudo -i" after login.
 
+Set an IP address in the same network as the host system (that will play the ros2 bags and the monitor tool) and set the default gateway.
+```sh
+sudo -i ifconfig eth0 192.168.1.2 255.255.255.0
+sudo -i route add default gw 192.168.1.1
+```
+Ping the host system to check any connectivity issues and list the available topics.
+```sh
+ping 192.168.1.1
+```
+```sh
+ros2 topic list
+```
+
 #### 10.  Install embedded hardware extensions
 Available Soon!
 
